@@ -1,15 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    turbo: {
-      root: process.cwd(),
-    },
-  },
   images: {
-    domains: [
-      'thumbnails.roblox.com',
-      'tr.rbxcdn.com',
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'thumbnails.roblox.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'tr.rbxcdn.com',
+      },
     ],
   },
 };

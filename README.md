@@ -49,6 +49,8 @@ cd bloxstyleworking
 npm install
 ```
 
+**⚠️ Important**: Always run commands from inside the `bloxstyleworking` directory. Do not run `npm install` or other commands from parent directories to avoid workspace issues.
+
 #### 2. Set Up Database (Supabase - Recommended)
 
 1. Go to [Supabase](https://supabase.com) and create a free account
@@ -143,13 +145,20 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - Verify `ROBLOX_CLIENT_ID` and `ROBLOX_CLIENT_SECRET` are correct
 - Check redirect URI in Roblox OAuth app matches exactly: `http://localhost:3000/api/auth/callback/roblox`
 
-**Turbopack workspace root warning**
-- Remove any `package-lock.json` files outside the project directory
-- Or the warning is harmless and can be ignored
+**Turbopack workspace root warning (multiple lockfiles)**
+- **Issue**: Next.js detects multiple `package-lock.json` files and warns about workspace root
+- **Solution**: Make sure to run all commands (`npm install`, `npm run dev`, etc.) from inside the project directory (`bloxstyleworking/`)
+- **Fix**: Remove any `package-lock.json` files in parent directories (e.g., `C:\Users\YourName\package-lock.json`)
+- If the warning persists but the app works, it's safe to ignore
 
 **Tailwind CSS not working**
 - Ensure you ran `npm install` after cloning
 - Delete `.next` folder and restart dev server: `npm run dev`
+
+**"PrismaClient needs to be constructed with adapter" error**
+- This means Prisma v7 dependencies are not installed
+- Run: `npm install` to install `@prisma/adapter-pg` and `pg`
+- Then run: `npx prisma generate`
 
 ## 📁 Project Structure
 
