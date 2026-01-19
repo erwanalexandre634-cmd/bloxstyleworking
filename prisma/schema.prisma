@@ -1,0 +1,169 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  robloxId      BigInt    @unique
+  username      String    @unique
+  displayName   String
+  avatarUrl     String?
+  bio           String?   @db.VarChar(280)
+
+  // Stats dénormalisées pour performance
+  outfitsCount  Int       @default(0)
+  likesReceived Int       @default(0)
+  followersCount Int      @default(0)
+  followingCount Int      @default(0)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime  @default(now())
+
+  // Relations
+  outfits       Outfit[]
+  likes         Like[]
+  followers     Follow[]  @relation("Following")
+  following     Follow[]  @relation("Followers")
+  battlesVoted  Battle[]
+
+  // NextAuth
+  accounts      Account[]
+  sessions      Session[]
+
+  @@index([username])
+  @@index([robloxId])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Outfit {
+  id            String   @id @default(cuid())
+  userId        String
+  name          String   @db.VarChar(100)
+  description   String?  @db.VarChar(500)
+  thumbnailUrl  String
+
+  // Données Roblox
+  assetIds      BigInt[] // IDs des items Roblox
+  bodyColors    Json?    // { head: "#fff", torso: "#000", ... }
+  avatarType    String   @default("R15") // R6 ou R15
+
+  // Status
+  isPublic      Boolean  @default(false)
+  isFeatured    Boolean  @default(false)
+
+  // Stats dénormalisées
+  likesCount    Int      @default(0)
+  viewsCount    Int      @default(0)
+  battlesWon    Int      @default(0)
+  battlesLost   Int      @default(0)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags          OutfitTag[]
+  likes         Like[]
+  battlesAsA    Battle[] @relation("OutfitA")
+  battlesAsB    Battle[] @relation("OutfitB")
+  battlesWinner Battle[] @relation("Winner")
+
+  @@index([userId])
+  @@index([isPublic, createdAt])
+  @@index([isPublic, likesCount])
+}
+
+model OutfitTag {
+  id        String @id @default(cuid())
+  outfitId  String
+  tag       String @db.VarChar(30)
+
+  outfit    Outfit @relation(fields: [outfitId], references: [id], onDelete: Cascade)
+
+  @@unique([outfitId, tag])
+  @@index([tag])
+}
+
+model Like {
+  userId    String
+  outfitId  String
+  createdAt DateTime @default(now())
+
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  outfit    Outfit @relation(fields: [outfitId], references: [id], onDelete: Cascade)
+
+  @@id([userId, outfitId])
+  @@index([outfitId])
+}
+
+model Follow {
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower    User @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@index([followingId])
+}
+
+model Battle {
+  id         String   @id @default(cuid())
+  outfitAId  String
+  outfitBId  String
+  winnerId   String?
+  voterId    String
+  createdAt  DateTime @default(now())
+
+  outfitA    Outfit @relation("OutfitA", fields: [outfitAId], references: [id], onDelete: Cascade)
+  outfitB    Outfit @relation("OutfitB", fields: [outfitBId], references: [id], onDelete: Cascade)
+  winner     Outfit? @relation("Winner", fields: [winnerId], references: [id], onDelete: SetNull)
+  voter      User   @relation(fields: [voterId], references: [id], onDelete: Cascade)
+
+  @@index([voterId])
+  @@index([createdAt])
+}
+
+// Tags prédéfinis pour autocomplétion
+model StyleTag {
+  id       String @id @default(cuid())
+  name     String @unique @db.VarChar(30)
+  slug     String @unique @db.VarChar(30)
+  category String @db.VarChar(50) // aesthetic, theme, era, etc.
+  color    String @db.VarChar(7)  // Hex color pour UI
+  usageCount Int  @default(0)
+}
