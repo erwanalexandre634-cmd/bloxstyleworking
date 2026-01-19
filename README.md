@@ -13,13 +13,13 @@
 
 ## 🛠 Tech Stack
 
-- **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS
+- **Frontend**: Next.js 14.2 (App Router), TypeScript, Tailwind CSS v3.4
 - **UI Components**: shadcn/ui
 - **State Management**: Zustand
 - **Data Fetching**: TanStack Query (React Query)
 - **Backend**: Next.js API Routes
-- **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: NextAuth.js v5 with Roblox Provider
+- **Database**: PostgreSQL with Prisma v5 ORM
+- **Authentication**: NextAuth.js v4 with Custom Roblox Provider
 - **Cache**: Redis (Upstash)
 - **Animations**: Framer Motion
 
@@ -155,10 +155,9 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - Ensure you ran `npm install` after cloning
 - Delete `.next` folder and restart dev server: `npm run dev`
 
-**"PrismaClient needs to be constructed with adapter" error**
-- This means Prisma v7 dependencies are not installed
-- Run: `npm install` to install `@prisma/adapter-pg` and `pg`
-- Then run: `npx prisma generate`
+**TypeScript errors about missing types**
+- Run: `npm install` to ensure all dependencies are installed
+- Delete `node_modules` and reinstall: `rm -rf node_modules && npm install`
 
 ## 📁 Project Structure
 
