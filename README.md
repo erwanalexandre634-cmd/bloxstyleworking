@@ -27,60 +27,129 @@
 
 ### Prerequisites
 
-- Node.js 18+
-- PostgreSQL database (Supabase, Neon, or local)
-- Redis instance (Upstash recommended)
-- Roblox OAuth credentials
+- **Node.js 18+** - [Download](https://nodejs.org/)
+- **Git** - [Download](https://git-scm.com/download/win)
+- **PostgreSQL database** (choose one):
+  - [Supabase](https://supabase.com) (recommended, free tier)
+  - [Neon](https://neon.tech) (recommended, free tier)
+  - Local PostgreSQL installation
+- **Redis instance** - [Upstash](https://upstash.com) (recommended, free tier)
+- **Roblox OAuth credentials** - [Create at Roblox Creator Hub](https://create.roblox.com/dashboard/credentials)
 
-### 1. Clone and Install
+### Step-by-Step Setup (Windows)
 
-```bash
-git clone <repository-url>
+#### 1. Clone and Install
+
+```cmd
+# Clone the repository
+git clone https://github.com/erwanalexandre634-cmd/bloxstyleworking.git
 cd bloxstyleworking
+
+# Install dependencies
 npm install
 ```
 
-### 2. Environment Setup
+#### 2. Set Up Database (Supabase - Recommended)
 
-Create a `.env.local` file based on `.env.local.example`:
+1. Go to [Supabase](https://supabase.com) and create a free account
+2. Create a new project
+3. Wait for the database to be provisioned (~2 minutes)
+4. Go to **Project Settings** > **Database**
+5. Copy the **Connection String** (URI format, not session pooler)
+6. Replace `[YOUR-PASSWORD]` in the connection string with your actual password
 
-```bash
-# Roblox OAuth (https://create.roblox.com/dashboard/credentials)
-ROBLOX_CLIENT_ID=your_client_id
-ROBLOX_CLIENT_SECRET=your_client_secret
+#### 3. Set Up Redis (Upstash)
 
-# Database
-DATABASE_URL="postgresql://user:password@host:5432/bloxstyle"
+1. Go to [Upstash](https://upstash.com) and create a free account
+2. Create a new Redis database (select any region)
+3. Go to **Details** tab
+4. Copy the **REST API URL** and **REST API Token**
 
-# Redis (https://upstash.com)
-UPSTASH_REDIS_REST_URL=your_redis_url
+#### 4. Set Up Roblox OAuth
+
+1. Go to [Roblox Creator Hub](https://create.roblox.com/dashboard/credentials)
+2. Click **Create OAuth2 App**
+3. Fill in:
+   - **Name**: Bloxstyle (or any name)
+   - **Redirect URIs**: `http://localhost:3000/api/auth/callback/roblox`
+   - **Scope**: `openid`, `profile`
+4. Click **Create** and copy the **Client ID** and **Client Secret**
+
+#### 5. Environment Configuration
+
+Copy `.env.local.example` to `.env.local`:
+
+```cmd
+copy .env.local.example .env.local
+```
+
+Then edit `.env.local` with your actual credentials:
+
+```env
+# Roblox OAuth
+ROBLOX_CLIENT_ID=your_actual_client_id
+ROBLOX_CLIENT_SECRET=your_actual_client_secret
+
+# Database (paste your Supabase connection string)
+DATABASE_URL="postgresql://postgres.xxxxx:[YOUR-PASSWORD]@aws-0-us-west-1.pooler.supabase.com:6543/postgres"
+
+# Redis (paste your Upstash credentials)
+UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
 UPSTASH_REDIS_REST_TOKEN=your_redis_token
 
 # NextAuth
 NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your_secret_key_min_32_chars
+NEXTAUTH_SECRET=
 ```
 
-### 3. Database Setup
+**Generate NEXTAUTH_SECRET:**
 
-```bash
+```cmd
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
+Copy the output and paste it as the `NEXTAUTH_SECRET` value.
+
+#### 6. Initialize Database
+
+```cmd
 # Generate Prisma client
 npx prisma generate
 
-# Push schema to database
+# Create database tables
 npx prisma db push
-
-# (Optional) Seed database
-npx prisma db seed
 ```
 
-### 4. Run Development Server
+You should see: `✔ Generated Prisma Client` and `Your database is now in sync with your Prisma schema.`
 
-```bash
+#### 7. Run Development Server
+
+```cmd
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the app.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Troubleshooting
+
+**"Cannot find module '@prisma/client'"**
+- Run: `npx prisma generate`
+
+**"PrismaClientInitializationError"**
+- Check that `DATABASE_URL` in `.env.local` is correct
+- Verify database is accessible (check Supabase dashboard)
+
+**"Failed to fetch" on login**
+- Verify `ROBLOX_CLIENT_ID` and `ROBLOX_CLIENT_SECRET` are correct
+- Check redirect URI in Roblox OAuth app matches exactly: `http://localhost:3000/api/auth/callback/roblox`
+
+**Turbopack workspace root warning**
+- Remove any `package-lock.json` files outside the project directory
+- Or the warning is harmless and can be ignored
+
+**Tailwind CSS not working**
+- Ensure you ran `npm install` after cloning
+- Delete `.next` folder and restart dev server: `npm run dev`
 
 ## 📁 Project Structure
 
